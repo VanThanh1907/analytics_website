@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Cửa hàng điện tử{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        {% if product.image_url %}
+        <img src="{{ product.image_url }}" class="img-fluid rounded product-detail-image" alt="{{ product.name }}" style="width: 100%; max-height: 400px; object-fit: cover;">
+        {% else %}
+        <div class="product-image bg-light p-4 text-center rounded">
+            <i class="fas fa-image fa-5x text-muted"></i>
+            <p class="text-muted mt-3">Hình ảnh sản phẩm</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <h1>{{ product.name }}</h1>
+        <p class="lead">{{ product.description }}</p>
+        
+        <div class="mb-3">
+            <span class="badge bg-secondary">{{ product.category }}</span>
+        </div>
+        
+        <div class="mb-3">
+            <h3 class="text-primary">{{ "{:,.0f}".format(product.price) }} VNĐ</h3>
+        </div>
+        
+        <div class="mb-3">
+            <strong>Còn lại:</strong> {{ product.stock }} sản phẩm
+        </div>
+        
+        <div class="mb-3">
+            <button class="btn btn-success btn-lg me-2 action-btn" 
+                    data-action="add_to_cart"
+                    data-product-id="{{ product.id }}"
+                    data-product-name="{{ product.name }}">
+                🛒 Thêm vào giỏ
+            </button>
+            <button class="btn btn-outline-danger action-btn" 
+                    data-action="wishlist"
+                    data-product-id="{{ product.id }}"
+                    data-product-name="{{ product.name }}">
+                ❤️ Yêu thích
+            </button>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="row">
+    <div class="col-12">
+        <h3>Mô tả chi tiết</h3>
+        <p>{{ product.description }}</p>
+        
+        <h4>Đặc điểm nổi bật:</h4>
+        <ul>
+            <li>Chất lượng cao, bảo hành chính hãng</li>
+            <li>Giao hàng nhanh toàn quốc</li>
+            <li>Hỗ trợ kỹ thuật 24/7</li>
+            <li>Đổi trả trong 30 ngày</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// Handle action buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const actionButtons = document.querySelectorAll('.action-btn');
+    
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            const productId = parseInt(this.getAttribute('data-product-id'));
+            const productName = this.getAttribute('data-product-name');
+            
+            // Send tracking event
+            fetch('/api/track_click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: action,
+                    product_id: productId,
+                    product_name: productName,
+                    page: 'product_detail'
+                })
+            });
+            
+            // Show user feedback
+            if (action === 'add_to_cart') {
+                alert('Đã thêm sản phẩm vào giỏ hàng!');
+            } else if (action === 'wishlist') {
+                alert('Đã thêm vào danh sách yêu thích!');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

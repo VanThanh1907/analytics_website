@@ -1,0 +1,171 @@
+services:
+  # Kafka và Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - ecommerce-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+    networks:
+      - ecommerce-network
+
+  # Database PostgreSQL
+  postgres:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: ecommerce_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+  # Redis cho cache và session
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - ecommerce-network
+
+  # Web Application
+  web-app:
+    build: ./web-app
+    container_name: ecommerce_web
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://admin:password123@postgres:5432/ecommerce_db
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./web-app:/app
+    networks:
+      - ecommerce-network
+
+  # Kafka Event Processor
+  kafka-processor:
+    build: ./kafka-config
+    container_name: kafka_event_processor
+    depends_on:
+      - kafka
+      - postgres
+      - redis
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - DATABASE_URL=postgresql://admin:password123@postgres:5432/ecommerce_db
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./kafka-config:/app
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Batch Processing (chạy định kỳ)
+  batch-processor:
+    image: bitnami/spark:3.5
+    container_name: spark_batch_processor
+    depends_on:
+      - spark-master
+      - postgres
+      - redis
+    environment:
+      - SPARK_MODE=submit
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ./spark-processing:/opt/bitnami/spark/jobs
+    networks:
+      - ecommerce-network
+    command: >
+      bash -c "
+        while true; do
+          echo 'Chạy batch processing job...'
+          /opt/bitnami/spark/bin/spark-submit \
+            --master spark://spark-master:7077 \
+            --packages org.postgresql:postgresql:42.5.0 \
+            /opt/bitnami/spark/jobs/user_behavior_analyzer.py
+          echo 'Batch job hoàn thành. Đợi 1 giờ...'
+          sleep 3600
+        done
+      "
+    restart: unless-stopped
+
+  # Spark Master
+  spark-master:
+    image: bitnami/spark:3.5
+    container_name: spark_master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - ./spark-processing:/opt/bitnami/spark/jobs
+    networks:
+      - ecommerce-network
+
+  # Spark Worker
+  spark-worker:
+    image: bitnami/spark:3.5
+    container_name: spark_worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark-master
+    volumes:
+      - ./spark-processing:/opt/bitnami/spark/jobs
+    networks:
+      - ecommerce-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge

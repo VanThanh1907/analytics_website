@@ -1,0 +1,141 @@
+/* Custom styles for ElectroShop */
+
+.product-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.recommended-product {
+    border: 2px solid #ffc107;
+}
+
+.product-image {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+
+.jumbotron {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.card-header.bg-warning {
+    border-bottom: 1px solid #ffc107;
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+footer {
+    margin-top: auto;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Loading animation */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Search highlight */
+.search-highlight {
+    background-color: #fff3cd;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Categories Navigation Styles */
+.category-link {
+    font-weight: 500;
+    color: #495057 !important;
+    padding: 8px 15px !important;
+    border-radius: 20px;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.category-link:hover {
+    background-color: #007bff;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+}
+
+.category-link:active {
+    transform: translateY(0px);
+}
+
+/* Responsive categories */
+@media (max-width: 768px) {
+    .category-link {
+        font-size: 0.85rem;
+        padding: 6px 10px !important;
+        margin: 1px;
+    }
+}
+
+/* Main navbar styling */
+.navbar-dark {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-light {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* User dropdown styling */
+#userDropdown {
+    color: rgba(255,255,255,0.9) !important;
+}
+
+#userDropdown:hover {
+    color: white !important;
+}
+
+/* Search form styling */
+.navbar .form-control {
+    border-radius: 20px;
+    border: none;
+    background-color: rgba(255,255,255,0.9);
+}
+
+.navbar .form-control:focus {
+    background-color: white;
+    box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+}
+
+.navbar .btn-outline-light {
+    border-radius: 20px;
+    border-color: rgba(255,255,255,0.9);
+}

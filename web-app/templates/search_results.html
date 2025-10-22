@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Kết quả tìm kiếm: {{ query }} - Cửa hàng điện tử{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    {% if category %}
+        <h2>Sản phẩm trong danh mục: {{ category }}</h2>
+        {% if query %}
+            <p class="text-muted">Tìm kiếm "{{ query }}" trong {{ category }} - Tìm thấy {{ products|length }} sản phẩm</p>
+        {% else %}
+            <p class="text-muted">Tìm thấy {{ products|length }} sản phẩm</p>
+        {% endif %}
+    {% elif query %}
+        <h2>Kết quả tìm kiếm cho: "{{ query }}"</h2>
+        <p class="text-muted">Tìm thấy {{ products|length }} sản phẩm</p>
+    {% else %}
+        <h2>Tất cả sản phẩm</h2>
+        <p class="text-muted">{{ products|length }} sản phẩm</p>
+    {% endif %}
+</div>
+
+{% if products %}
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 col-lg-3 mb-4">
+        <div class="card h-100 product-card" data-product-id="{{ product.id }}">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" class="card-img-top product-image" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                <i class="fas fa-image fa-3x text-muted"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">{{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}</p>
+                <p class="card-text">
+                    <small class="text-muted">{{ product.category }}</small>
+                </p>
+                <h6 class="text-primary">{{ "{:,.0f}".format(product.price) }} VNĐ</h6>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                   class="btn btn-primary btn-sm product-link"
+                   data-product-id="{{ product.id }}"
+                   data-product-name="{{ product.name }}">
+                   Xem chi tiết
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center mt-5">
+    <h4>Không tìm thấy sản phẩm nào</h4>
+    <p>Thử tìm kiếm với từ khóa khác hoặc <a href="{{ url_for('index') }}">quay về trang chủ</a></p>
+</div>
+{% endif %}
+{% endblock %}

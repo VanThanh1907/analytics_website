@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-center mb-4">Danh mục sản phẩm</h1>
+        <p class="text-center text-muted">Khám phá các danh mục sản phẩm đa dạng của chúng tôi</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Thực phẩm tươi sống -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #FF6B35, #F7931E); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-fish fa-3x mb-3"></i>
+                    <h4>Thực phẩm tươi sống</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Thịt heo, bò, gà, tôm cua, cá tươi ngon và an toàn</p>
+                <a href="{{ url_for('category_products', category='Thực phẩm tươi sống') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đồ uống & Nước giải khát -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #4ECDC4, #44A08D); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-glass-whiskey fa-3x mb-3"></i>
+                    <h4>Đồ uống & Nước giải khát</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Nước ngọt, sữa tươi, trà cà phê và nước ép tươi</p>
+                <a href="{{ url_for('category_products', category='Đồ uống & Nước giải khát') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trái cây tươi -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #FFA726, #FFCC02); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-apple-alt fa-3x mb-3"></i>
+                    <h4>Trái cây tươi</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Táo, cam, xoài, nho và các loại trái cây tươi ngon</p>
+                <a href="{{ url_for('category_products', category='Trái cây tươi') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rau củ quả -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #66BB6A, #43A047); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-carrot fa-3x mb-3"></i>
+                    <h4>Rau củ quả</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Rau xanh, củ quả tươi ngon và an toàn</p>
+                <a href="{{ url_for('category_products', category='Rau củ quả') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thực phẩm khô & Gia vị -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #8D6E63, #A0887E); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-seedling fa-3x mb-3"></i>
+                    <h4>Thực phẩm khô & Gia vị</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Gạo, mì, dầu ăn, gia vị và thực phẩm khô</p>
+                <a href="{{ url_for('category_products', category='Thực phẩm khô & Gia vị') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đồ gia dụng nhà bếp -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #90A4AE, #607D8B); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-utensils fa-3x mb-3"></i>
+                    <h4>Đồ gia dụng nhà bếp</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Nồi chảo, máy móc và dụng cụ nhà bếp</p>
+                <a href="{{ url_for('category_products', category='Đồ gia dụng nhà bếp') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bánh kẹo & Snacks -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #EC407A, #E91E63); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-cookie-bite fa-3x mb-3"></i>
+                    <h4>Bánh kẹo & Snacks</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Bánh quy, kẹo, chocolate và đồ ăn vặt</p>
+                <a href="{{ url_for('category_products', category='Bánh kẹo & Snacks') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sản phẩm làm đẹp & Chăm sóc cá nhân -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #BA68C8, #9C27B0); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-spa fa-3x mb-3"></i>
+                    <h4>Sản phẩm làm đẹp & Chăm sóc cá nhân</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Dầu gội, sữa tắm, kem chống nắng và mỹ phẩm</p>
+                <a href="{{ url_for('category_products', category='Sản phẩm làm đẹp & Chăm sóc cá nhân') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đồ dùng gia đình -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #42A5F5, #1E88E5); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-home fa-3x mb-3"></i>
+                    <h4>Đồ dùng gia đình</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Giấy vệ sinh, nước giặt, chất tẩy rửa và đồ dùng hàng ngày</p>
+                <a href="{{ url_for('category_products', category='Đồ dùng gia đình') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mới nhập - Đặc biệt -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card category-card h-100">
+            <div class="card-img-top bg-gradient" style="height: 200px; background: linear-gradient(135deg, #FFD54F, #FFC107); position: relative;">
+                <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
+                    <i class="fas fa-star fa-3x mb-3"></i>
+                    <h4>Sản phẩm mới & Đặc biệt</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Sản phẩm mới nhập và ưu đãi đặc biệt</p>
+                <a href="{{ url_for('category_products', category='Mới nhập') }}" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.category-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.bg-gradient {
+    border-radius: 15px 15px 0 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-body h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.card-text {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
