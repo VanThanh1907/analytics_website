@@ -6,6 +6,8 @@ from kafka import KafkaProducer
 import json
 import redis
 import os
+import sys
+import requests
 from datetime import datetime
 import uuid
 
@@ -268,18 +270,45 @@ def track_click():
     data = request.get_json()
     
     if current_user.is_authenticated:
-        send_user_event(current_user.id, 'click', data)
+        event_type = data.get('event_type', 'click')
+        event_data = data.get('data', {})
         
-        # Lưu vào database nếu là click vào sản phẩm
-        if data.get('product_id'):
-            interaction = UserInteraction(
-                user_id=current_user.id,
-                product_id=data.get('product_id'),
-                interaction_type='click',
-                details=data
-            )
-            db.session.add(interaction)
-            db.session.commit()
+        # Determine interaction type based on event
+        interaction_type = 'click'  # Default
+        
+        if event_type in ['product_card_click', 'product_link_click', 'recommendation_click', 'action_button_click']:
+            interaction_type = 'click'
+        elif event_type in ['product_view', 'page_load']:
+            interaction_type = 'view'
+        elif event_type == 'search_submit':
+            interaction_type = 'search'
+        else:
+            interaction_type = 'other'
+        
+        # Send to Kafka
+        kafka_event_data = {
+            'event_type': event_type,
+            'interaction_type': interaction_type,
+            **event_data
+        }
+        send_user_event(current_user.id, interaction_type, kafka_event_data)
+        
+        # Lưu vào database cho product interactions
+        product_id = event_data.get('product_id') or data.get('product_id')
+        if product_id and interaction_type in ['click', 'view']:
+            try:
+                interaction = UserInteraction(
+                    user_id=current_user.id,
+                    product_id=int(product_id),
+                    interaction_type=interaction_type,
+                    details=kafka_event_data
+                )
+                db.session.add(interaction)
+                db.session.commit()
+                print(f"✅ Saved {interaction_type} interaction: User {current_user.id} -> Product {product_id}")
+            except Exception as e:
+                print(f"❌ Error saving interaction: {e}")
+                db.session.rollback()
     
     return jsonify({'status': 'success'})
 
@@ -370,7 +399,7 @@ def recommendations():
     print(f"🔍 Getting recommendations for user ID: {current_user.id}")
     
     # Try API server first
-    api_result = call_recommendation_api('recommendations', current_user.id, num_recs=6)
+    api_result = call_recommendation_api('recommendations', current_user.id, num_recs=10)  # 8 cùng danh mục + 2 liên quan
     print(f"🔍 API result: {api_result}")
     
     if api_result and api_result.get('status') == 'success':
@@ -392,19 +421,29 @@ def recommendations():
                 print(f"📊 Strategy: {analysis_data.get('strategy_used', 'unknown')}")
                 print(f"🎯 Total interactions: {analysis_data.get('total_interactions', 0)}")
     
-    # Fallback: try direct API if available
-    elif recommendation_api:
+    # Fallback: try direct engine if available
+    elif recommendation_engine:
         try:
             print("🔄 Trying direct recommendation engine...")
-            result = recommendation_api.get_recommendations_for_user(current_user.id, 6)
+            result = recommendation_engine.get_recommendations_for_user(current_user.id, 10)  # 8 + 2
             if result['status'] == 'success' and result['recommendations']:
-                product_ids = [p['id'] for p in result['recommendations']]
-                if product_ids:
-                    recommendations = Product.query.filter(Product.id.in_(product_ids)).all()
-                    recommendations_dict = {p.id: p for p in recommendations}
-                    recommendations = [recommendations_dict[pid] for pid in product_ids if pid in recommendations_dict]
-                    analysis_data = result.get('analysis', {})
-                    print(f"✅ Direct engine recommendations: {len(recommendations)} sản phẩm")
+                recommendations = result['recommendations']
+                analysis_data = result.get('analysis', {})
+                print(f"✅ Direct engine recommendations: {len(recommendations)} sản phẩm")
+                print(f"🔍 DEBUG - Strategy: {analysis_data.get('strategy_used')}")
+                print(f"🔍 DEBUG - Latest click product: {analysis_data.get('latest_click_product')}")
+                
+                # IMPORTANT: Ensure product objects have priority and reason attributes
+                for i, rec in enumerate(recommendations):
+                    if isinstance(rec, dict):
+                        # Convert dict to Product-like object with additional attributes
+                        product = Product.query.get(rec['id'])
+                        if product:
+                            product.priority = rec.get('priority', 'unknown')
+                            product.reason = rec.get('reason', 'No reason provided')
+                            recommendations[i] = product
+                        print(f"🔍 Product {i+1}: {rec.get('name')} - Priority: {rec.get('priority')} - Reason: {rec.get('reason')}")
+                    
         except Exception as e:
             print(f"❌ Lỗi direct recommendation engine: {e}")
     
@@ -425,7 +464,7 @@ def recommendations():
         'recommendation_count': len(recommendations),
         'strategy_used': analysis_data.get('strategy_used', 'unknown'),
         'has_behavior_data': analysis_data.get('total_interactions', 0) > 0,
-        'api_used': 'server' if api_result else ('direct' if recommendation_api else 'none')
+        'api_used': 'server' if api_result else ('direct' if recommendation_engine else 'none')
     })
     
     return render_template('recommendations.html', 
@@ -467,13 +506,12 @@ def categories():
 # Import recommendation API
 import sys
 import os
-import requests
 
 # Try to use local API server
 RECOMMENDATION_API_URL = os.getenv('RECOMMENDATION_API_URL', 'http://localhost:5002')  # Changed to port 5002
 
 def call_recommendation_api(endpoint, user_id=None, **kwargs):
-    """Call recommendation API server"""
+    """Call recommendation API server or fallback to simple recommendations"""
     try:
         if user_id:
             url = f"{RECOMMENDATION_API_URL}/{endpoint}/{user_id}"
@@ -481,26 +519,52 @@ def call_recommendation_api(endpoint, user_id=None, **kwargs):
             url = f"{RECOMMENDATION_API_URL}/{endpoint}"
         
         print(f"🌐 Calling API: {url}")
-        response = requests.get(url, params=kwargs, timeout=5)
-        print(f"📞 API response status: {response.status_code}")
+        response = requests.get(url, params=kwargs, timeout=2)
         response.raise_for_status()
         result = response.json()
-        print(f"📊 API response data: {result}")
+        print(f"� API response data: {result}")
         return result
     except Exception as e:
-        print(f"❌ Lỗi gọi recommendation API: {e}")
-        return None
+        print(f"❌ API not available, using fallback: {e}")
+        # Fallback to simple recommendations
+        return get_simple_recommendations(user_id, kwargs.get('num_recs', 6))
+
+def get_simple_recommendations(user_id, num_recs=6):
+    """Simple recommendation fallback"""
+    try:
+        # Lấy tất cả sản phẩm và random
+        all_products = Product.query.all()
+        if len(all_products) < num_recs:
+            recommended_products = all_products
+        else:
+            import random
+            recommended_products = random.sample(all_products, num_recs)
+        
+        recommendations = [
+            {'id': p.id, 'name': p.name, 'price': p.price} 
+            for p in recommended_products
+        ]
+        
+        return {
+            'status': 'success',
+            'recommendations': recommendations,
+            'method': 'simple_random'
+        }
+    except Exception as e:
+        print(f"❌ Error in simple recommendations: {e}")
+        return {'status': 'error', 'recommendations': []}
 
 # Fallback: try to import direct
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'recommendation-engine'))
 
 try:
-    from recommendation_api import RecommendationAPI
-    recommendation_api = RecommendationAPI()
-    print("✅ Direct recommendation engine loaded")
-except ImportError:
-    recommendation_api = None
-    print("⚠️ Using API server for recommendations")
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'recommendation-engine'))
+    from simple_recommendation import SimpleRecommendationEngine
+    recommendation_engine = SimpleRecommendationEngine()
+    print("✅ Simple Recommendation Engine loaded successfully")
+except Exception as e:
+    print(f"❌ Failed to load Simple Recommendation Engine: {e}")
+    recommendation_engine = None
 
 # Khởi tạo database
 def create_tables():

@@ -5,26 +5,37 @@
 {% block content %}
 <div class="mb-4">
     <h2>🎯 Gợi ý dành riêng cho bạn</h2>
-    {% if analysis %}
-        {% if analysis.strategy_used == 'kafka_behavior_only' %}
-            <p class="text-success">
-                <i class="fas fa-chart-line"></i> 
-                🎯 Dựa hoàn toàn trên phân tích Kafka - {{ analysis.total_interactions or 0 }} tương tác
-            </p>
-        {% elif analysis.strategy_used == 'no_kafka_data' or analysis.strategy_used == 'no_data' %}
-            <p class="text-warning">
-                <i class="fas fa-exclamation-triangle"></i> 
-                {{ analysis.note or "Chưa có dữ liệu hành vi từ Kafka" }}
-            </p>
-        {% else %}
+{% if analysis %}
+    {% if analysis.strategy_used == 'same_category_plus_related' %}
+        <p class="text-success">
+            <i class="fas fa-bullseye"></i> 
+            🎯 Strategy: 8 sản phẩm cùng danh mục + 2 danh mục liên quan
+        </p>
+        {% if analysis.latest_click_product %}
             <p class="text-info">
-                <i class="fas fa-info-circle"></i> 
-                {{ analysis.note or "Hệ thống đang phân tích hành vi" }}
+                <i class="fas fa-mouse-pointer"></i> 
+                Dựa trên click gần nhất: <strong>"{{ analysis.latest_click_product }}"</strong> ({{ analysis.latest_click_category }})
             </p>
         {% endif %}
+    {% elif analysis.strategy_used == 'view_based_fallback' %}
+        <p class="text-warning">
+            <i class="fas fa-eye"></i> 
+            💡 Dựa trên danh mục bạn đã xem (chưa có click data)
+        </p>
+    {% elif analysis.strategy_used == 'no_data_fallback' %}
+        <p class="text-muted">
+            <i class="fas fa-info-circle"></i> 
+            📦 Sản phẩm phổ biến (chưa có dữ liệu hành vi)
+        </p>
     {% else %}
-        <p class="text-muted">Dựa trên phân tích hành vi Kafka của bạn</p>
+        <p class="text-info">
+            <i class="fas fa-info-circle"></i> 
+            {{ analysis.note or "Hệ thống đang phân tích hành vi" }}
+        </p>
     {% endif %}
+{% else %}
+    <p class="text-muted">Dựa trên phân tích hành vi Kafka của bạn</p>
+{% endif %}
 </div>
 
 <!-- Hiển thị phân tích hành vi nếu có -->
@@ -77,10 +88,17 @@
     {% for product in products %}
     <div class="col-md-4 col-lg-3 mb-4">
         <div class="card h-100 product-card recommended-product" data-product-id="{{ product.id }}">
-            <div class="card-header bg-warning text-dark">
-                <small>⭐ Được gợi ý cho bạn</small>
-                {% if analysis and analysis.recommendation_reasons and loop.index0 < analysis.recommendation_reasons|length %}
-                    <br><small style="font-size: 0.7em;">{{ analysis.recommendation_reasons[loop.index0] }}</small>
+            <div class="card-header {% if product.priority == 'same_category' %}bg-success text-white{% elif product.priority == 'related_category' %}bg-info text-white{% else %}bg-warning text-dark{% endif %}">
+                {% if product.priority == 'same_category' %}
+                    <small><i class="fas fa-bullseye"></i> Cùng danh mục (#{{ loop.index }})</small>
+                {% elif product.priority == 'related_category' %}
+                    <small><i class="fas fa-link"></i> Danh mục liên quan (#{{ loop.index }})</small>
+                {% else %}
+                    <small><i class="fas fa-star"></i> Được gợi ý (#{{ loop.index }})</small>
+                {% endif %}
+                
+                {% if product.reason %}
+                    <br><small style="font-size: 0.7em;">💡 {{ product.reason }}</small>
                 {% endif %}
             </div>
             {% if product.image_url %}

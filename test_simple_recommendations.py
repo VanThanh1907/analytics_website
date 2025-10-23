@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """
-Test script để kiểm tra recommendation logic mới
+Test script cho Simple Recommendation Engine
 """
 
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'recommendation-engine'))
 
-from recommendation_api import KafkaBasedRecommendationEngine
-import json
+from simple_recommendation import SimpleRecommendationEngine
 
-def test_recommendation_engine():
-    print("🧪 Testing Recommendation Engine with Latest Click Priority")
+def test_simple_engine():
+    print("🧪 Testing Simple Recommendation Engine with Latest Click Priority")
     print("=" * 60)
     
     # Initialize engine
-    engine = KafkaBasedRecommendationEngine()
+    engine = SimpleRecommendationEngine()
     
     # Test with different user IDs
-    test_users = [1, 2, 3, 999]  # 999 = user không có data
+    test_users = [1, 2, 3]
     
     for user_id in test_users:
         print(f"\n🔍 Testing User ID: {user_id}")
@@ -35,13 +34,8 @@ def test_recommendation_engine():
                 if 'strategy_details' in result['analysis']:
                     print(f"📝 Details: {', '.join(result['analysis']['strategy_details'])}")
                 
-                if 'latest_click_category' in result['analysis']:
-                    latest_click = result['analysis']['latest_click_category']
-                    print(f"🎯 Latest Click Category: {latest_click or 'None'}")
-                
-                if 'latest_interaction_category' in result['analysis']:
-                    latest_interaction = result['analysis']['latest_interaction_category']
-                    print(f"👁️ Latest Interaction Category: {latest_interaction or 'None'}")
+                latest_click = result['analysis'].get('latest_click_category')
+                print(f"🎯 Latest Click Category: {latest_click or 'None'}")
                 
                 print(f"🔢 Total Recommendations: {result['total']}")
                 print(f"🤝 Total Interactions: {result['analysis']['total_interactions']}")
@@ -50,13 +44,13 @@ def test_recommendation_engine():
                 
                 # Show recommendations
                 if result['recommendations']:
-                    print(f"\n🎁 Recommendations:")
+                    print(f"\n🎁 Top 3 Recommendations:")
                     for i, rec in enumerate(result['recommendations'][:3], 1):
-                        reason = rec.get('reason', 'No reason provided')
+                        reason = rec.get('reason', 'No reason')
                         priority = rec.get('priority', 'normal')
                         print(f"  {i}. {rec['name']} (ID: {rec['id']}) - {rec['category']}")
-                        print(f"     Reason: {reason}")
-                        print(f"     Priority: {priority}")
+                        print(f"     💡 Reason: {reason}")
+                        print(f"     🏆 Priority: {priority}")
                 else:
                     print("🚫 No recommendations found")
                 
@@ -73,7 +67,7 @@ def test_recommendation_engine():
             print(f"❌ Exception for User {user_id}: {e}")
     
     print("\n" + "=" * 60)
-    print("🎯 Test completed! Check if latest click priority is working correctly.")
+    print("🎯 Test completed! Check if latest click priority is working.")
 
 if __name__ == "__main__":
-    test_recommendation_engine()
+    test_simple_engine()

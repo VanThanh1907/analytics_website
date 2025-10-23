@@ -1,6 +1,6 @@
 import redis
 import json
-import psycopg2
+import sqlite3  # Thay đổi từ psycopg2 sang sqlite3
 from datetime import datetime, timedelta
 import logging
 from typing import List, Dict, Any
@@ -24,8 +24,8 @@ class KafkaBasedRecommendationEngine:
             logger.warning("Không thể kết nối Redis, sử dụng fallback")
             self.redis_client = None
         
-        # Database connection
-        self.db_url = f"postgresql://{os.getenv('DB_USER', 'admin')}:{os.getenv('DB_PASSWORD', 'password123')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'ecommerce_db')}"
+        # Database connection - sử dụng SQLite như web app
+        self.db_path = os.path.join(os.path.dirname(__file__), '..', 'web-app', 'instance', 'ecommerce.db')
         
         # Mapping danh mục liên quan dựa trên logic kinh doanh
         self.category_relations = {
@@ -43,11 +43,15 @@ class KafkaBasedRecommendationEngine:
         logger.info("Kafka-based Recommendation Engine đã khởi tạo")
 
     def get_db_connection(self):
-        """Lấy kết nối database"""
+        """Lấy kết nối SQLite database"""
         try:
-            return psycopg2.connect(self.db_url)
+            if os.path.exists(self.db_path):
+                return sqlite3.connect(self.db_path)
+            else:
+                logger.warning(f"Database file not found: {self.db_path}")
+                return None
         except Exception as e:
-            logger.error(f"Không thể kết nối database: {e}")
+            logger.error(f"Không thể kết nối SQLite database: {e}")
             return None
 
     def analyze_user_behavior_from_kafka(self, user_id: int, days: int = 7) -> Dict[str, Any]:
@@ -57,7 +61,8 @@ class KafkaBasedRecommendationEngine:
             'viewed_categories': Counter(), 
             'searched_categories': Counter(),
             'favorite_products': [],
-            'recent_interactions': [],
+            'recent_interactions': [],  # Tất cả interactions
+            'recent_clicks': [],        # Chỉ clicks, ưu tiên cao nhất
             'shopping_patterns': defaultdict(int)
         }
         
@@ -75,9 +80,9 @@ class KafkaBasedRecommendationEngine:
             query = """
                 SELECT ui.interaction_type, ui.details, ui.timestamp, 
                        p.category, p.id, p.name, p.price
-                FROM user_interactions ui
-                LEFT JOIN products p ON ui.product_id = p.id
-                WHERE ui.user_id = %s AND ui.timestamp >= %s
+                FROM user_interaction ui
+                LEFT JOIN product p ON ui.product_id = p.id
+                WHERE ui.user_id = ? AND ui.timestamp >= ?
                 ORDER BY ui.timestamp DESC
                 LIMIT 100
             """
@@ -106,6 +111,16 @@ class KafkaBasedRecommendationEngine:
                     if interaction_details.get('action') == 'add_to_cart':
                         behavior['clicked_categories'][category] += 5  # Điểm rất cao cho add to cart
                         behavior['shopping_patterns']['add_to_cart'] += 1
+                    
+                    # Lưu click riêng biệt để ưu tiên
+                    behavior['recent_clicks'].append({
+                        'product_id': product_id,
+                        'product_name': product_name,
+                        'category': category,
+                        'timestamp': timestamp,
+                        'price': price,
+                        'interaction_type': 'click'
+                    })
                 
                 elif interaction_type in ['view', 'product_view']:
                     behavior['viewed_categories'][category] += 2  # Điểm trung bình cho view
@@ -146,7 +161,7 @@ class KafkaBasedRecommendationEngine:
         return behavior
 
     def get_recommendations_for_user(self, user_id: int, num_recs: int = 6) -> Dict[str, Any]:
-        """Tạo gợi ý dựa trên phân tích Kafka data"""
+        """Tạo gợi ý dựa trên phân tích Kafka data - ưu tiên lần click gần nhất"""
         try:
             # 1. Phân tích hành vi từ Kafka data
             behavior = self.analyze_user_behavior_from_kafka(user_id)
@@ -154,20 +169,77 @@ class KafkaBasedRecommendationEngine:
             recommendations = []
             recommendation_reasons = []
             
-            # 2. Strategy: Gợi ý từ danh mục được click nhiều nhất
-            top_clicked_categories = behavior['clicked_categories'].most_common(3)
-            if top_clicked_categories:
+            # 2. Strategy: PRIORITY - Gợi ý từ danh mục của lần click GẦN NHẤT
+            recent_clicks = behavior.get('recent_clicks', [])
+            if recent_clicks:
+                # Lấy danh mục của lần click gần nhất (đầu tiên trong list đã sắp xếp DESC)
+                latest_click_category = recent_clicks[0].get('category')
+                if latest_click_category:
+                    print(f"🎯 Latest CLICK category: {latest_click_category}")
+                    
+                    # Lấy 3-4 sản phẩm từ danh mục vừa click
+                    latest_category_products = self._get_trending_products_from_category(
+                        latest_click_category, 
+                        limit=4,
+                        exclude_products=[]
+                    )
+                    for product in latest_category_products:
+                        product['reason'] = f"Dựa trên lần click gần nhất: {latest_click_category}"
+                        product['priority'] = 'latest_click'
+                        recommendations.append(product)
+                        recommendation_reasons.append(f"Click gần nhất: {latest_click_category}")
+                    
+                    print(f"✅ Added {len(latest_category_products)} products from latest CLICK category")
+            
+            # Fallback: Nếu không có click, dùng view gần nhất
+            elif behavior.get('recent_interactions', []):
+                latest_interaction = behavior['recent_interactions'][0]
+                latest_category = latest_interaction.get('category')
+                if latest_category:
+                    print(f"🎯 Latest VIEW category: {latest_category}")
+                    
+                    latest_category_products = self._get_trending_products_from_category(
+                        latest_category, 
+                        limit=3,
+                        exclude_products=[]
+                    )
+                    for product in latest_category_products:
+                        product['reason'] = f"Dựa trên lần xem gần nhất: {latest_category}"
+                        product['priority'] = 'latest_view'
+                        recommendations.append(product)
+                        recommendation_reasons.append(f"Xem gần nhất: {latest_category}")
+            
+            # 3. Strategy: Gợi ý từ danh mục được click nhiều nhất (nếu chưa đủ)
+            if len(recommendations) < num_recs:
+                top_clicked_categories = behavior['clicked_categories'].most_common(3)
+                used_categories = set()
+                
+                # Đánh dấu danh mục đã dùng cho latest click/view
+                if recent_clicks:
+                    used_categories.add(recent_clicks[0].get('category'))
+                elif behavior.get('recent_interactions', []):
+                    used_categories.add(behavior['recent_interactions'][0].get('category'))
+                
                 for category, click_count in top_clicked_categories:
+                    if len(recommendations) >= num_recs:
+                        break
+                        
+                    # Skip nếu đã có từ latest click/view
+                    if category in used_categories:
+                        continue
+                        
                     category_products = self._get_trending_products_from_category(
                         category, 
                         limit=2,
                         exclude_products=[r.get('id') for r in recommendations if r.get('id')]
                     )
                     for product in category_products:
-                        product['reason'] = f"Bạn đã click {click_count} lần vào {category}"
+                        product['reason'] = f"Bạn quan tâm đến {category} ({click_count} lần click)"
+                        product['priority'] = 'frequent_category'
                         recommendations.append(product)
-                        recommendation_reasons.append(f"Quan tâm đến {category}")
+                        recommendation_reasons.append(f"Quan tâm: {category}")
                     
+                    used_categories.add(category)
                     if len(recommendations) >= num_recs:
                         break
             
@@ -217,8 +289,27 @@ class KafkaBasedRecommendationEngine:
             # Cache kết quả
             self._cache_recommendations(user_id, recommendations)
             
-            # Chuẩn bị response
-            strategy_used = "kafka_behavior_based" if (behavior['clicked_categories'] or behavior['viewed_categories']) else "trending_based"
+            # Chuẩn bị response với strategy details
+            strategy_details = []
+            
+            # Xác định strategy chính được sử dụng
+            if behavior.get('recent_clicks'):
+                primary_strategy = "latest_click_based"
+                latest_category = behavior['recent_clicks'][0].get('category')
+                strategy_details.append(f"Ưu tiên danh mục click gần nhất: {latest_category}")
+            elif behavior.get('recent_interactions'):
+                primary_strategy = "latest_view_based" 
+                latest_category = behavior['recent_interactions'][0].get('category')
+                strategy_details.append(f"Dựa trên danh mục xem gần nhất: {latest_category}")
+            elif behavior['clicked_categories']:
+                primary_strategy = "frequent_clicks_based"
+                strategy_details.append("Dựa trên danh mục được click nhiều")
+            elif behavior['viewed_categories']:
+                primary_strategy = "frequent_views_based"
+                strategy_details.append("Dựa trên danh mục được xem nhiều")
+            else:
+                primary_strategy = "trending_based"
+                strategy_details.append("Sản phẩm đang thịnh hành")
             
             return {
                 'status': 'success',
@@ -226,11 +317,16 @@ class KafkaBasedRecommendationEngine:
                 'recommendations': recommendations[:num_recs],
                 'total': len(recommendations[:num_recs]),
                 'analysis': {
+                    'strategy_used': primary_strategy,
+                    'strategy_details': strategy_details,
+                    'recent_clicks_count': len(behavior.get('recent_clicks', [])),
+                    'recent_interactions_count': len(behavior.get('recent_interactions', [])),
                     'top_clicked_categories': dict(behavior['clicked_categories'].most_common(3)),
                     'top_viewed_categories': dict(behavior['viewed_categories'].most_common(3)),
                     'total_interactions': sum(behavior['clicked_categories'].values()) + sum(behavior['viewed_categories'].values()),
-                    'strategy_used': strategy_used,
-                    'recommendation_reasons': recommendation_reasons[:num_recs]
+                    'recommendation_reasons': recommendation_reasons[:num_recs],
+                    'latest_click_category': behavior['recent_clicks'][0].get('category') if behavior.get('recent_clicks') else None,
+                    'latest_interaction_category': behavior['recent_interactions'][0].get('category') if behavior.get('recent_interactions') else None
                 }
             }
             
