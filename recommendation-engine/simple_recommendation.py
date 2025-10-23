@@ -107,17 +107,17 @@ class SimpleRecommendationEngine:
                     'interaction_type': interaction_type
                 }
                 
-                # Phân loại theo interaction type
-                if interaction_type == 'click':
+                # ✅ Phân loại theo interaction type - VIEWS = CLICKS (same weight)
+                if interaction_type in ['click', 'view', 'product_click', 'product_view']:
                     behavior['clicked_categories'][category] += 3
                     behavior['recent_clicks'].append(interaction_obj)
                     behavior['recent_interactions'].append(interaction_obj)
-                    logger.info(f"Recorded CLICK: {category} for user {user_id}")
+                    logger.info(f"✅ Recorded {interaction_type.upper()}: {category} for user {user_id}")
                     
-                elif interaction_type == 'view':
-                    behavior['viewed_categories'][category] += 2
+                elif interaction_type == 'search':
+                    behavior['viewed_categories'][category] += 1
                     behavior['recent_interactions'].append(interaction_obj)
-                    logger.info(f"Recorded VIEW: {category} for user {user_id}")
+                    logger.info(f"Recorded SEARCH: {category} for user {user_id}")
             
             # Tìm favorite products
             product_count = Counter()

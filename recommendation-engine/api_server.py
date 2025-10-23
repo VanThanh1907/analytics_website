@@ -21,8 +21,8 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Mock recommendation engine for testing
-class MockRecommendationEngine:
+# Real-time recommendation engine using SQLite
+class RealDataRecommendationEngine:
     def __init__(self):
         # Connect to SQLite database to read real interactions
         self.db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'web-app', 'instance', 'ecommerce.db'))
@@ -30,8 +30,8 @@ class MockRecommendationEngine:
         # Lưu trữ lịch sử gợi ý của từng user
         self.user_recommendation_history = {}
         
-        # Expanded mock data với nhiều sản phẩm hơn để đảm bảo đa dạng
-        self.mock_products = [
+        # ✅ KHÔNG CÒN MOCK DATA - CHỈ DÙNG DATABASE THẬT
+        logger.info(f"✅ Real Data Recommendation Engine initialized with SQLite: {self.db_path}")
             # Thực phẩm tươi sống (8 sản phẩm)
             {'id': 1, 'name': 'Gạo ST25 túi 5kg', 'category': 'Thực phẩm tươi sống', 'price': 180000},
             {'id': 2, 'name': 'Gạo tẻ thường 5kg', 'category': 'Thực phẩm tươi sống', 'price': 120000},

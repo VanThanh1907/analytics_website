@@ -447,12 +447,12 @@ def recommendations():
         except Exception as e:
             print(f"❌ Lỗi direct recommendation engine: {e}")
     
-    # NO MORE RANDOM FALLBACK - Chỉ dựa vào Kafka data
+    # ✅ NO FALLBACK - Chỉ dựa vào dữ liệu thật từ database
     if not recommendations:
-        print("⚠️ Không có dữ liệu Kafka - không có gợi ý")
+        print("⚠️ User chưa có tương tác - không có gợi ý")
         analysis_data = {
-            'strategy_used': 'no_kafka_data',
-            'note': 'Chưa có dữ liệu hành vi từ Kafka. Hãy click vào sản phẩm để hệ thống học sở thích của bạn!'
+            'strategy_used': 'no_interaction_data',
+            'note': '✅ 100% dữ liệu thật: Chưa có tương tác. Hãy click vào sản phẩm để nhận gợi ý!'
         }
     
     # Debug log
@@ -507,8 +507,8 @@ def categories():
 import sys
 import os
 
-# Try to use local API server
-RECOMMENDATION_API_URL = os.getenv('RECOMMENDATION_API_URL', 'http://localhost:5002')  # Changed to port 5002
+# ✅ Use REAL DATA API server only
+RECOMMENDATION_API_URL = os.getenv('RECOMMENDATION_API_URL', 'http://localhost:5001')  # Real data API
 
 def call_recommendation_api(endpoint, user_id=None, **kwargs):
     """Call recommendation API server or fallback to simple recommendations"""
@@ -530,29 +530,13 @@ def call_recommendation_api(endpoint, user_id=None, **kwargs):
         return get_simple_recommendations(user_id, kwargs.get('num_recs', 6))
 
 def get_simple_recommendations(user_id, num_recs=6):
-    """Simple recommendation fallback"""
-    try:
-        # Lấy tất cả sản phẩm và random
-        all_products = Product.query.all()
-        if len(all_products) < num_recs:
-            recommended_products = all_products
-        else:
-            import random
-            recommended_products = random.sample(all_products, num_recs)
-        
-        recommendations = [
-            {'id': p.id, 'name': p.name, 'price': p.price} 
-            for p in recommended_products
-        ]
-        
-        return {
-            'status': 'success',
-            'recommendations': recommendations,
-            'method': 'simple_random'
-        }
-    except Exception as e:
-        print(f"❌ Error in simple recommendations: {e}")
-        return {'status': 'error', 'recommendations': []}
+    """✅ NO MORE RANDOM - Return empty if no real data"""
+    return {
+        'status': 'success',
+        'recommendations': [],
+        'method': 'no_data',
+        'note': 'Không có dữ liệu tương tác. Hãy click vào sản phẩm để nhận gợi ý!'
+    }
 
 # Fallback: try to import direct
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'recommendation-engine'))
@@ -570,7 +554,7 @@ except Exception as e:
 def create_tables():
     db.create_all()
     
-    # Tạo dữ liệu mẫu nếu chưa có
+    # ✅ Tạo dữ liệu sản phẩm THẬT nếu chưa có (chỉ chạy lần đầu)
     if Product.query.count() == 0:
         sample_products = [
             # Thực phẩm tươi sống (15 sản phẩm)

@@ -3,7 +3,7 @@
 
 ---
 
-## 🚀 KHỞI ĐỘNG HỆ THỐNG
+## 🚀 HƯỚNG DẪN DEMO NHANH - CẬP NHẬT MỚI NHẤT
 
 ### Bước 1: Chạy Demo
 ```batch
