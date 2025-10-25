@@ -2,6 +2,34 @@
 (function() {
     'use strict';
 
+    // Generate unique tab/window ID using sessionStorage (unique per tab)
+    let tabId = sessionStorage.getItem('tabId');
+    if (!tabId) {
+        tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        sessionStorage.setItem('tabId', tabId);
+    }
+    console.log('Tab ID:', tabId);
+
+    // Send heartbeat to keep session alive
+    function sendHeartbeat() {
+        fetch('/api/heartbeat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tab_id: tabId,
+                timestamp: new Date().toISOString()
+            })
+        }).catch(function(error) {
+            console.log('Heartbeat error:', error);
+        });
+    }
+
+    // Send initial heartbeat and then every 30 seconds
+    sendHeartbeat();
+    setInterval(sendHeartbeat, 30000);
+
     // Track page load time
     window.addEventListener('load', function() {
         trackEvent('page_load', {

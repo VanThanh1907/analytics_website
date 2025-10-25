@@ -139,12 +139,35 @@ def send_user_event(user_id, event_type, data):
         print(f"Lỗi lưu interaction vào DB: {e}")
         db.session.rollback()
 
+# Session tracking helper
+def update_session_activity():
+    """Update or create session activity for real-time tracking"""
+    if 'session_id' not in session:
+        session['session_id'] = str(uuid.uuid4())
+    
+    session_id = session['session_id']
+    user_id = current_user.id if current_user.is_authenticated else None
+    
+    try:
+        # Update or insert session
+        from sqlalchemy import text
+        query = text("""
+            INSERT INTO active_session (session_id, user_id, last_activity)
+            VALUES (:session_id, :user_id, CURRENT_TIMESTAMP)
+            ON CONFLICT(session_id) 
+            DO UPDATE SET last_activity = CURRENT_TIMESTAMP, user_id = :user_id
+        """)
+        db.session.execute(query, {'session_id': session_id, 'user_id': user_id})
+        db.session.commit()
+    except Exception as e:
+        print(f"Session tracking error: {e}")
+        db.session.rollback()
+
 # Routes
 @app.route('/')
 def index():
-    # Tạo session ID nếu chưa có
-    if 'session_id' not in session:
-        session['session_id'] = str(uuid.uuid4())
+    # Track session activity
+    update_session_activity()
     
     products = Product.query.limit(12).all()
     
@@ -191,7 +214,11 @@ def login():
         
         if user and user.check_password(password):
             login_user(user)
+            # Generate NEW session_id for this login to count as new session
+            session['session_id'] = str(uuid.uuid4())
             send_user_event(user.id, 'login', {'username': username})
+            # Update session immediately after login
+            update_session_activity()
             return redirect(url_for('index'))
         else:
             flash('Tên đăng nhập hoặc mật khẩu không đúng')
@@ -207,6 +234,9 @@ def logout():
 
 @app.route('/search')
 def search():
+    # Track session activity
+    update_session_activity()
+    
     query = request.args.get('q', '').strip()
     category = request.args.get('category', '').strip()
     
@@ -242,6 +272,9 @@ def search():
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
+    # Track session activity
+    update_session_activity()
+    
     product = Product.query.get_or_404(product_id)
     
     # Gửi event product view
@@ -264,6 +297,34 @@ def product_detail(product_id):
         db.session.commit()
     
     return render_template('product_detail.html', product=product)
+
+@app.route('/api/heartbeat', methods=['POST'])
+def heartbeat():
+    """Track tab activity with unique tab_id from JavaScript"""
+    data = request.get_json()
+    tab_id = data.get('tab_id')
+    
+    if tab_id:
+        user_id = current_user.id if current_user.is_authenticated else None
+        
+        try:
+            from sqlalchemy import text
+            # Use tab_id as session_id for unique tracking
+            query = text("""
+                INSERT INTO active_session (session_id, user_id, last_activity)
+                VALUES (:session_id, :user_id, CURRENT_TIMESTAMP)
+                ON CONFLICT(session_id) 
+                DO UPDATE SET last_activity = CURRENT_TIMESTAMP, user_id = :user_id
+            """)
+            db.session.execute(query, {'session_id': tab_id, 'user_id': user_id})
+            db.session.commit()
+            return jsonify({'status': 'ok', 'tab_id': tab_id})
+        except Exception as e:
+            print(f"Heartbeat error: {e}")
+            db.session.rollback()
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    return jsonify({'status': 'error', 'message': 'No tab_id'}), 400
 
 @app.route('/api/track_click', methods=['POST'])
 def track_click():
@@ -473,6 +534,9 @@ def recommendations():
 
 @app.route('/category/<category>')
 def category_products(category):
+    # Track session activity
+    update_session_activity()
+    
     page = request.args.get('page', 1, type=int)
     per_page = 12  # Hiển thị 12 sản phẩm mỗi trang
     
@@ -495,6 +559,9 @@ def category_products(category):
 
 @app.route('/categories')
 def categories():
+    # Track session activity
+    update_session_activity()
+    
     # Lấy danh sách tất cả danh mục và số lượng sản phẩm
     categories_data = db.session.query(
         Product.category, 
