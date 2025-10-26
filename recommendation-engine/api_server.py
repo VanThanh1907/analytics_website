@@ -33,71 +33,71 @@ class RealDataRecommendationEngine:
         # ✅ KHÔNG CÒN MOCK DATA - CHỈ DÙNG DATABASE THẬT
         logger.info(f"✅ Real Data Recommendation Engine initialized with SQLite: {self.db_path}")
             # Thực phẩm tươi sống (8 sản phẩm)
-            {'id': 1, 'name': 'Gạo ST25 túi 5kg', 'category': 'Thực phẩm tươi sống', 'price': 180000},
-            {'id': 2, 'name': 'Gạo tẻ thường 5kg', 'category': 'Thực phẩm tươi sống', 'price': 120000},
-            {'id': 3, 'name': 'Gạo nàng hương 2kg', 'category': 'Thực phẩm tươi sống', 'price': 85000},
-            {'id': 4, 'name': 'Gà công nghiệp 1.2kg', 'category': 'Thực phẩm tươi sống', 'price': 85000},
-            {'id': 5, 'name': 'Thịt heo ba chỉ 500g', 'category': 'Thực phẩm tươi sống', 'price': 95000},
-            {'id': 6, 'name': 'Cá tra phi lê 400g', 'category': 'Thực phẩm tươi sống', 'price': 75000},
-            {'id': 7, 'name': 'Tôm sú tươi 300g', 'category': 'Thực phẩm tươi sống', 'price': 120000},
-            {'id': 8, 'name': 'Trứng gà tươi 10 quả', 'category': 'Thực phẩm tươi sống', 'price': 35000},
+        {'id': 1, 'name': 'Gạo ST25 túi 5kg', 'category': 'Thực phẩm tươi sống', 'price': 180000},
+        {'id': 2, 'name': 'Gạo tẻ thường 5kg', 'category': 'Thực phẩm tươi sống', 'price': 120000},
+        {'id': 3, 'name': 'Gạo nàng hương 2kg', 'category': 'Thực phẩm tươi sống', 'price': 85000},
+        {'id': 5, 'name': 'Thịt heo ba chỉ 500g', 'category': 'Thực phẩm tươi sống', 'price': 95000},
+        {'id': 4, 'name': 'Gà công nghiệp 1.2kg', 'category': 'Thực phẩm tươi sống', 'price': 85000},
+        {'id': 6, 'name': 'Cá tra phi lê 400g', 'category': 'Thực phẩm tươi sống', 'price': 75000},
+        {'id': 7, 'name': 'Tôm sú tươi 300g', 'category': 'Thực phẩm tươi sống', 'price': 120000},
+        {'id': 8, 'name': 'Trứng gà tươi 10 quả', 'category': 'Thực phẩm tươi sống', 'price': 35000},
             
             # Đồ uống & Nước giải khát (6 sản phẩm)
-            {'id': 15, 'name': 'Coca Cola lon 330ml', 'category': 'Đồ uống & Nước giải khát', 'price': 15000},
-            {'id': 16, 'name': 'Pepsi lon 330ml', 'category': 'Đồ uống & Nước giải khát', 'price': 15000},
-            {'id': 17, 'name': 'Nước cam Tropicana 1L', 'category': 'Đồ uống & Nước giải khát', 'price': 35000},
-            {'id': 18, 'name': 'Trà xanh C2 500ml', 'category': 'Đồ uống & Nước giải khát', 'price': 12000},
-            {'id': 19, 'name': 'Nước lọc Aquafina 500ml', 'category': 'Đồ uống & Nước giải khát', 'price': 8000},
-            {'id': 20, 'name': 'Cà phê sữa đá G7 hộp', 'category': 'Đồ uống & Nước giải khát', 'price': 45000},
+        {'id': 15, 'name': 'Coca Cola lon 330ml', 'category': 'Đồ uống & Nước giải khát', 'price': 15000},
+        {'id': 16, 'name': 'Pepsi lon 330ml', 'category': 'Đồ uống & Nước giải khát', 'price': 15000},
+        {'id': 17, 'name': 'Nước cam Tropicana 1L', 'category': 'Đồ uống & Nước giải khát', 'price': 35000},
+        {'id': 18, 'name': 'Trà xanh C2 500ml', 'category': 'Đồ uống & Nước giải khát', 'price': 12000},
+        {'id': 19, 'name': 'Nước lọc Aquafina 500ml', 'category': 'Đồ uống & Nước giải khát', 'price': 8000},
+        {'id': 20, 'name': 'Cà phê sữa đá G7 hộp', 'category': 'Đồ uống & Nước giải khát', 'price': 45000},
             
             # Trái cây tươi (5 sản phẩm)
-            {'id': 28, 'name': 'Cam tươi Việt Nam 1kg', 'category': 'Trái cây tươi', 'price': 45000},
-            {'id': 29, 'name': 'Táo Fuji Nhật Bản 1kg', 'category': 'Trái cây tươi', 'price': 85000},
-            {'id': 30, 'name': 'Chuối tiêu Đắk Lắk 1kg', 'category': 'Trái cây tươi', 'price': 25000},
-            {'id': 31, 'name': 'Xoài cát Hòa Lộc 1kg', 'category': 'Trái cây tươi', 'price': 65000},
-            {'id': 32, 'name': 'Nho đen không hạt 500g', 'category': 'Trái cây tươi', 'price': 95000},
+        {'id': 28, 'name': 'Cam tươi Việt Nam 1kg', 'category': 'Trái cây tươi', 'price': 45000},
+        {'id': 29, 'name': 'Táo Fuji Nhật Bản 1kg', 'category': 'Trái cây tươi', 'price': 85000},
+        {'id': 30, 'name': 'Chuối tiêu Đắk Lắk 1kg', 'category': 'Trái cây tươi', 'price': 25000},
+        {'id': 31, 'name': 'Xoài cát Hòa Lộc 1kg', 'category': 'Trái cây tươi', 'price': 65000},
+        {'id': 32, 'name': 'Nho đen không hạt 500g', 'category': 'Trái cây tươi', 'price': 95000},
             
             # Rau củ quả (5 sản phẩm)
-            {'id': 35, 'name': 'Cải thảo 1kg', 'category': 'Rau củ quả', 'price': 18000},
-            {'id': 36, 'name': 'Cà rót tím 500g', 'category': 'Rau củ quả', 'price': 22000},
-            {'id': 37, 'name': 'Củ cải trắng 1kg', 'category': 'Rau củ quả', 'price': 20000},
-            {'id': 38, 'name': 'Bí đỏ Đà Lạt 1kg', 'category': 'Rau củ quả', 'price': 35000},
-            {'id': 39, 'name': 'Rau muống 300g', 'category': 'Rau củ quả', 'price': 8000},
+        {'id': 35, 'name': 'Cải thảo 1kg', 'category': 'Rau củ quả', 'price': 18000},
+        {'id': 36, 'name': 'Cà rót tím 500g', 'category': 'Rau củ quả', 'price': 22000},
+        {'id': 37, 'name': 'Củ cải trắng 1kg', 'category': 'Rau củ quả', 'price': 20000},
+        {'id': 38, 'name': 'Bí đỏ Đà Lạt 1kg', 'category': 'Rau củ quả', 'price': 35000},
+        {'id': 39, 'name': 'Rau muống 300g', 'category': 'Rau củ quả', 'price': 8000},
             
             # Thực phẩm khô & Gia vị (8 sản phẩm)
-            {'id': 42, 'name': 'Hạt điều rang muối 200g', 'category': 'Thực phẩm khô & Gia vị', 'price': 85000},
-            {'id': 43, 'name': 'Nước mắm Phú Quốc 500ml', 'category': 'Thực phẩm khô & Gia vị', 'price': 45000},
-            {'id': 44, 'name': 'Đường cát trắng 1kg', 'category': 'Thực phẩm khô & Gia vị', 'price': 25000},
-            {'id': 45, 'name': 'Muối tinh I-ốt 1kg', 'category': 'Thực phẩm khô & Gia vị', 'price': 15000},
-            {'id': 46, 'name': 'Mì ăn liền Hảo Hảo gói', 'category': 'Thực phẩm khô & Gia vị', 'price': 4500},
-            {'id': 47, 'name': 'Nước tương đậu nành 500ml', 'category': 'Thực phẩm khô & Gia vị', 'price': 35000},
-            {'id': 48, 'name': 'Hạt nêm Knorr 400g', 'category': 'Thực phẩm khô & Gia vị', 'price': 28000},
-            {'id': 49, 'name': 'Dầu ăn Neptune 1L', 'category': 'Thực phẩm khô & Gia vị', 'price': 55000},
+        {'id': 42, 'name': 'Hạt điều rang muối 200g', 'category': 'Thực phẩm khô & Gia vị', 'price': 85000},
+        {'id': 43, 'name': 'Nước mắm Phú Quốc 500ml', 'category': 'Thực phẩm khô & Gia vị', 'price': 45000},
+        {'id': 44, 'name': 'Đường cát trắng 1kg', 'category': 'Thực phẩm khô & Gia vị', 'price': 25000},
+        {'id': 45, 'name': 'Muối tinh I-ốt 1kg', 'category': 'Thực phẩm khô & Gia vị', 'price': 15000},
+        {'id': 46, 'name': 'Mì ăn liền Hảo Hảo gói', 'category': 'Thực phẩm khô & Gia vị', 'price': 4500},
+        {'id': 47, 'name': 'Nước tương đậu nành 500ml', 'category': 'Thực phẩm khô & Gia vị', 'price': 35000},
+        {'id': 48, 'name': 'Hạt nêm Knorr 400g', 'category': 'Thực phẩm khô & Gia vị', 'price': 28000},
+        {'id': 49, 'name': 'Dầu ăn Neptune 1L', 'category': 'Thực phẩm khô & Gia vị', 'price': 55000},
             
             # Bánh kẹo & Snacks (4 sản phẩm)
-            {'id': 58, 'name': 'Bánh quy chocolate 300g', 'category': 'Bánh kẹo & Snacks', 'price': 55000},
-            {'id': 59, 'name': 'Kẹo dẻo Haribo 100g', 'category': 'Bánh kẹo & Snacks', 'price': 35000},
-            {'id': 60, 'name': 'Snack khoai tây Pringles', 'category': 'Bánh kẹo & Snacks', 'price': 65000},
-            {'id': 61, 'name': 'Bánh mì sandwich 200g', 'category': 'Bánh kẹo & Snacks', 'price': 45000},
+        {'id': 58, 'name': 'Bánh quy chocolate 300g', 'category': 'Bánh kẹo & Snacks', 'price': 55000},
+        {'id': 59, 'name': 'Kẹo dẻo Haribo 100g', 'category': 'Bánh kẹo & Snacks', 'price': 35000},
+        {'id': 60, 'name': 'Snack khoai tây Pringles', 'category': 'Bánh kẹo & Snacks', 'price': 65000},
+        {'id': 61, 'name': 'Bánh mì sandwich 200g', 'category': 'Bánh kẹo & Snacks', 'price': 45000},
             
             # Sản phẩm làm đẹp & Chăm sóc cá nhân (8 sản phẩm)
-            {'id': 70, 'name': 'Kem dưỡng da Olay 50ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 150000},
-            {'id': 71, 'name': 'Sữa rửa mặt Neutrogena 200ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 180000},
-            {'id': 72, 'name': 'Dầu gội Head & Shoulders 400ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 95000},
-            {'id': 73, 'name': 'Sữa tắm Dove 500ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 85000},
-            {'id': 74, 'name': 'Kem chống nắng Sunplay 50ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 120000},
-            {'id': 75, 'name': 'Serum vitamin C 30ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 250000},
-            {'id': 76, 'name': 'Nước hoa hồng Mamonde 200ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 190000},
-            {'id': 77, 'name': 'Son môi MAC Rouge 3.5g', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 320000},
+        {'id': 70, 'name': 'Kem dưỡng da Olay 50ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 150000},
+        {'id': 71, 'name': 'Sữa rửa mặt Neutrogena 200ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 180000},
+        {'id': 72, 'name': 'Dầu gội Head & Shoulders 400ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 95000},
+        {'id': 73, 'name': 'Sữa tắm Dove 500ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 85000},
+        {'id': 74, 'name': 'Kem chống nắng Sunplay 50ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 120000},
+        {'id': 75, 'name': 'Serum vitamin C 30ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 250000},
+        {'id': 76, 'name': 'Nước hoa hồng Mamonde 200ml', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 190000},
+        {'id': 77, 'name': 'Son môi MAC Rouge 3.5g', 'category': 'Sản phẩm làm đẹp & Chăm sóc cá nhân', 'price': 320000},
             
             # Đồ gia dụng nhà bếp (6 sản phẩm)
-            {'id': 80, 'name': 'Chảo chống dính 24cm', 'category': 'Đồ gia dụng nhà bếp', 'price': 250000},
-            {'id': 81, 'name': 'Nồi cơm điện 1.2L', 'category': 'Đồ gia dụng nhà bếp', 'price': 450000},
-            {'id': 82, 'name': 'Bộ dao nhà bếp 5 món', 'category': 'Đồ gia dụng nhà bếp', 'price': 180000},
-            {'id': 83, 'name': 'Máy xay sinh tố 1.5L', 'category': 'Đồ gia dụng nhà bếp', 'price': 350000},
-            {'id': 84, 'name': 'Bình đun siêu tốc 1.7L', 'category': 'Đồ gia dụng nhà bếp', 'price': 280000},
-            {'id': 85, 'name': 'Bộ chén đĩa gốm sứ', 'category': 'Đồ gia dụng nhà bếp', 'price': 220000}
-        ]
+        {'id': 80, 'name': 'Chảo chống dính 24cm', 'category': 'Đồ gia dụng nhà bếp', 'price': 250000},
+        {'id': 81, 'name': 'Nồi cơm điện 1.2L', 'category': 'Đồ gia dụng nhà bếp', 'price': 450000},
+        {'id': 82, 'name': 'Bộ dao nhà bếp 5 món', 'category': 'Đồ gia dụng nhà bếp', 'price': 180000},
+        {'id': 83, 'name': 'Máy xay sinh tố 1.5L', 'category': 'Đồ gia dụng nhà bếp', 'price': 350000},
+        {'id': 84, 'name': 'Bình đun siêu tốc 1.7L', 'category': 'Đồ gia dụng nhà bếp', 'price': 280000},
+        {'id': 85, 'name': 'Bộ chén đĩa gốm sứ', 'category': 'Đồ gia dụng nhà bếp', 'price': 220000}
+            
         
         self.category_relations = {
             'Thực phẩm tươi sống': ['Rau củ quả', 'Thực phẩm khô & Gia vị'],
